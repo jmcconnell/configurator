@@ -50,7 +50,7 @@
                   (use 'clojure.contrib.test-is)
                   (def failed (ref 0)) (declare orig-report)
                   (binding [orig-report report
-                            report #(do (if (= (:type %) :fail)
+                            report #(do (if (#{:fail :error} (:type %))
                                             (dosync (commute failed inc)))
                                         (orig-report %))]
                     (run-all-tests)
