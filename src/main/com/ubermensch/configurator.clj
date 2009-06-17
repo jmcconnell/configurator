@@ -1,11 +1,13 @@
 (ns com.ubermensch.configurator
   (:use
      [clojure.contrib.duck-streams :only [with-in-reader slurp*]]
-     [clojure.contrib.test-is :only [testing with-test is]]))
+     [clojure.contrib.test-is :only [testing with-test is]])
+  (:import [org.joda.time DateTime]))
 
 (def *config-version* (ref 0))
 (def *registered-configs* (ref #{}))
 (def *config* (agent {}))
+(def *update-interval* (* 5 60 1000)) ; 5 minutes
 
 (with-test
   (defn load-config-file
@@ -28,14 +30,16 @@
   (testing "vars do not pollute namespace"
     (is (= nil (resolve 'configurator-test-var)))))
 
+(defn- update-config [c] (send *config* merge c))
+
 (with-test
   (defn register-config [f]
     (let [config (load-config-file f)]
       (dosync
-        (send *config* merge config)
+        (update-config config)
         (alter *registered-configs*
                conj
-               (with-meta [f] {:last-updated (java.util.Date.)})))))
+               (with-meta [f] {:last-updated (DateTime.)})))))
 
   (testing "registered config files"
     (binding [load-config-file (fn [_] nil)]
@@ -46,15 +50,17 @@
 
       (testing "contain proper metadata"
         (let [c (register-config "test")]
-          (Thread/sleep 1) ; to ensure our new Date is later
-          (is (true? (.before (:last-updated (meta (c ["test"])))
-                              (java.util.Date.)))))))
+          (Thread/sleep 1) ; to ensure our new date is later
+          (is (true? (.isBefore (:last-updated (meta (c ["test"])))
+                                (DateTime.)))))))
            
     (testing "merge config into *config*"
       (binding [load-config-file (fn [_] {:a 0 :b 1})]
         (let [c (register-config "test-merge")]
+          (await *config*)
           (is (= {:a 0 :b 1} @*config*))))
 
       (binding [load-config-file (fn [_] {:a 0 :b 3 :c 4})]
         (let [c (register-config "test-merge2")]
+          (await *config*)
           (is (= {:a 0 :b 3 :c 4} @*config*)))))))
