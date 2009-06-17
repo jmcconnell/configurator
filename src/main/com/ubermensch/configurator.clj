@@ -90,9 +90,9 @@
     (testing "missing values with a default result in the default"
       (is (= 2 (get :c 2))))))
 
-(when (not *compile-files*)
-  (.scheduleAtFixedRate (java.util.concurrent.ScheduledThreadPoolExecutor. 1)
-                        check-for-updates
-                        0
-                        *update-interval*
-                        java.util.concurrent.TimeUnit/MILLISECONDS))
+;(when (not *compile-files*)
+;  (.scheduleAtFixedRate (java.util.concurrent.ScheduledThreadPoolExecutor. 1)
+;                        check-for-updates
+;                        0
+;                        *update-interval*
+;                        java.util.concurrent.TimeUnit/MILLISECONDS))
