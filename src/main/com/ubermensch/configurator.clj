@@ -37,11 +37,11 @@
 (with-test
   (defn register-config [f]
     (let [config (load-config-file f)]
-      (dosync
-        (update-config config)
-        (alter *registered-configs*
-               conj
-               (with-meta [f] {:last-updated (DateTime.)})))))
+      (update-config config)
+      (await *config*)
+      (dosync (alter *registered-configs*
+                     conj
+                     (with-meta [f] {:last-updated (DateTime.)})))))
 
   (testing "registered config files"
     (binding [load-config-file (fn [_] nil)]
@@ -59,12 +59,10 @@
     (testing "merge config into *config*"
       (binding [load-config-file (fn [_] {:a 0 :b 1})]
         (let [c (register-config "test-merge")]
-          (await *config*)
           (is (= {:a 0 :b 1} @*config*))))
 
       (binding [load-config-file (fn [_] {:a 0 :b 3 :c 4})]
         (let [c (register-config "test-merge2")]
-          (await *config*)
           (is (= {:a 0 :b 3 :c 4} @*config*)))))))
 
 (defn- check-for-updates []
