@@ -4,7 +4,8 @@
      [clojure.contrib.test-is :only [testing with-test is]]))
 
 (def *config-version* (ref 0))
-(def *registered-configs* (ref {}))
+(def *registered-configs* (ref #{}))
+(def *config* (agent {}))
 
 (with-test
   (defn load-config-file
@@ -30,8 +31,30 @@
 (with-test
   (defn register-config [f]
     (let [config (load-config-file f)]
-      (dosync (alter *registered-configs* conj [f config]))))
+      (dosync
+        (send *config* merge config)
+        (alter *registered-configs*
+               conj
+               (with-meta [f] {:last-updated (java.util.Date.)})))))
 
-  (binding [load-config-file (fn [_] nil)]
-    (is (= {"test" nil} (register-config "test")))
-    (is (= {"test" nil "test2" nil} (register-config "test2")))))
+  (testing "registered config files"
+    (binding [load-config-file (fn [_] nil)]
+      (testing "stored in set"
+        (is (= #{["test"]} (register-config "test")))
+        (is (= #{["test"]} (register-config "test")))
+        (is (= #{["test"] ["test2"]} (register-config "test2"))))
+
+      (testing "contain proper metadata"
+        (let [c (register-config "test")]
+          (Thread/sleep 1) ; to ensure our new Date is later
+          (is (true? (.before (:last-updated (meta (c ["test"])))
+                              (java.util.Date.)))))))
+           
+    (testing "merge config into *config*"
+      (binding [load-config-file (fn [_] {:a 0 :b 1})]
+        (let [c (register-config "test-merge")]
+          (is (= {:a 0 :b 1} @*config*))))
+
+      (binding [load-config-file (fn [_] {:a 0 :b 3 :c 4})]
+        (let [c (register-config "test-merge2")]
+          (is (= {:a 0 :b 3 :c 4} @*config*)))))))
