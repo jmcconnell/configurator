@@ -1,16 +1,18 @@
 (ns com.ubermensch.configurator
   (:use
      [clojure.contrib.duck-streams :only [with-in-reader slurp*]]
-     [clojure.contrib.test-is :only [testing with-test is]])
-  (:import [org.joda.time DateTime]))
+     [clojure.contrib.test-is :only [testing with-test is]]
+     [clojure.contrib.def :only [defvar-]])
+  (:import [org.joda.time DateTime])
+  (:refer-clojure :exclude [get]))
 
-(def *config-version* (ref 0))
-(def *registered-configs* (ref #{}))
-(def *config* (agent {}))
-(def *update-interval* (* 5 60 1000)) ; 5 minutes
+(defvar- *config-version* (ref 0))
+(defvar- *registered-configs* (ref #{}))
+(defvar- *config* (agent {}))
+(defvar- *update-interval* (* 5 60 1000)) ; 5 minutes
 
 (with-test
-  (defn load-config-file
+  (defn- load-config-file
     "Loads f and returns the final expression. If f is found on the classpath,
     it is loaded from there. Otherwise, it is assumed to be a file."
     [f]
@@ -69,6 +71,26 @@
   (doseq [c (filter #(.isAfter (DateTime.) (.plus % *update-interval*))
                     @*registered-configs*)]
     (update-config c)))
+
+(with-test
+  (defn get
+    "Gets the value of k from the current configuration or default or nil
+    if not present."
+    ([k] (get k nil))
+    ([k default] (clojure.core/get @*config* k default)))
+
+  (binding [load-config-file (fn [_] {:a 0 :b 1})]
+    (register-config "test")
+
+    (testing "existing config values are returned"
+      (is (= 0 (get :a)))
+      (is (= 1 (get :b))))
+
+    (testing "missing values result in nil"
+      (is (nil? (get :c))))
+
+    (testing "missing values with a default result in the default"
+      (is (= 2 (get :c 2))))))
 
 (when (not *compile-files*)
   (.scheduleAtFixedRate (java.util.concurrent.ScheduledThreadPoolExecutor. 1)
