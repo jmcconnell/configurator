@@ -64,3 +64,15 @@
         (let [c (register-config "test-merge2")]
           (await *config*)
           (is (= {:a 0 :b 3 :c 4} @*config*)))))))
+
+(defn- check-for-updates []
+  (doseq [c (filter #(.isAfter (DateTime.) (.plus % *update-interval*))
+                    @*registered-configs*)]
+    (update-config c)))
+
+(when (not *compile-files*)
+  (.scheduleAtFixedRate (java.util.concurrent.ScheduledThreadPoolExecutor. 1)
+                        check-for-updates
+                        0
+                        *update-interval*
+                        java.util.concurrent.TimeUnit/MILLISECONDS))
