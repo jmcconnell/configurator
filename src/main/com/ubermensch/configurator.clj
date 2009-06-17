@@ -8,7 +8,8 @@
 
 (defvar- *config-version* (ref 0))
 (defvar- *registered-configs* (ref #{}))
-(defvar- *config* (agent {}))
+;(defvar- *config* (agent {}))
+(defvar- *config* (ref {}))
 (defvar- *update-interval* (* 5 60 1000)) ; 5 minutes
 
 (with-test
@@ -32,16 +33,19 @@
   (testing "vars do not pollute namespace"
     (is (= nil (resolve 'configurator-test-var)))))
 
-(defn- update-config [c] (send *config* merge c))
+;(defn- update-config [c] (send *config* merge c))
+(defn- update-config [c] (alter *config* merge c))
 
 (with-test
   (defn register-config [f]
     (let [config (load-config-file f)]
-      (update-config config)
-      (await *config*)
-      (dosync (alter *registered-configs*
-                     conj
-                     (with-meta [f] {:last-updated (DateTime.)})))))
+      ;(update-config config)
+      ;(await *config*)
+      (dosync
+        (update-config config)
+        (alter *registered-configs*
+               conj
+               (with-meta [f] {:last-updated (DateTime.)})))))
 
   (testing "registered config files"
     (binding [load-config-file (fn [_] nil)]
