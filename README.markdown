@@ -7,12 +7,12 @@ expression of the config file should return a map containg the config data.
 For example, the following config file would result in the simple configuration
 { :my-key "My Val" }:
 
-  (let [t (System/currentTimeMillis)]
-   (if t
-    (def v "My Val")
-    (def v "Other Val")))
-  
-  { :my-key v }
+    (let [t (System/currentTimeMillis)]
+     (if t
+      (def v "My Val")
+      (def v "Other Val")))
+    
+    { :my-key v }
 
 The config files are executed in a seperated namespace and will not pollute the
 global namespace.
