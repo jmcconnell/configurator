@@ -3,7 +3,9 @@
      [clojure.contrib.duck-streams :only [with-in-reader slurp*]]
      [clojure.contrib.test-is :only [testing with-test is]]
      [clojure.contrib.def :only [defvar-]])
-  (:import [org.joda.time DateTime])
+  (:import
+     [org.joda.time DateTime]
+     [java.util.logging Logger Level])
   (:refer-clojure :exclude [get]))
 
 (defvar- *config-version* (ref 0))
@@ -69,7 +71,10 @@
         (let [c (register-config "test-merge2")]
           (is (= {:a 0 :b 3 :c 4} @*config*)))))))
 
-(defn- check-for-updates []
+(defn check-for-updates
+  "Checks for config files that have not been re-read in more than
+  *update-interval* seconds and reloads them."
+  []
   (doseq [c (filter #(.isAfter (DateTime.) (.plus % *update-interval*))
                     @*registered-configs*)]
     (update-config c)))
@@ -94,9 +99,15 @@
     (testing "missing values with a default result in the default"
       (is (= 2 (get :c 2))))))
 
-;(when (not *compile-files*)
-;  (.scheduleAtFixedRate (java.util.concurrent.ScheduledThreadPoolExecutor. 1)
-;                        check-for-updates
-;                        0
-;                        *update-interval*
-;                        java.util.concurrent.TimeUnit/MILLISECONDS))
+(when (not *compile-files*)
+  (try
+    (.scheduleAtFixedRate (java.util.concurrent.ScheduledThreadPoolExecutor. 1)
+                          check-for-updates
+                          0
+                          *update-interval*
+                          java.util.concurrent.TimeUnit/MILLISECONDS)
+    (catch Exception e
+      (.log (Logger/getLogger (str (ns-name *ns*)))
+            Level/WARNING
+"Could not kick off Thread to monitor config files. Configuration will remain
+as initially read until check-for-updates is called by application code."))))
