@@ -18,8 +18,8 @@ For example, the following config file would result in the simple configuration
     
     { :my-key v }
 
-The config files are executed in a separated namespace and will not pollute the
-global namespace.
+The config files are evaluated in a new namespace and `def's` within them will
+not leak out.
 
 Once Configurator is loaded, a thread is kicked off that monitors all
 registered config files. Every five minutes it reloads the files to pick up
