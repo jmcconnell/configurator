@@ -44,3 +44,14 @@ registered config files. Every five minutes it reloads the files to pick up
 any changes. If a thread cannot be started for any reason, for example, due to
 a security policy, this feature is simply not available. However, applications
 are free to call `com.ubermensch.configurator/check-for-updates` on their own.
+
+## License
+
+Copyright (c) J. McConnell. All rights reserved.
+
+The use and distribution terms for this software are covered by the
+Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+which can be found in the file epl-v10.html at the root of this distribution.
+By using this software in any fashion, you are agreeing to be bound by the
+terms of this license.  You must not remove this notice, or any other, from
+this software.
