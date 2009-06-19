@@ -1,5 +1,7 @@
 # Configurator
 
+## Overview
+
 This library allows for the registration of config files in a running Clojure
 application. The config files may consist of any valid Clojure code. The last
 expression of the config file should return a map containing the config data.
@@ -16,6 +18,8 @@ For example, the following config file would result in the simple configuration
 
 The config files are executed in a separated namespace and will not pollute the
 global namespace.
+
+## Use
 
 The intention is that libraries making use of Configurator can document
 the config files that they expect to be available at runtime. Then, they
