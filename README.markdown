@@ -21,14 +21,17 @@ The intention is that libraries making use of Configurator can document
 the config files that they expect to be available at runtime. Then, they
 register those config files with Configurator like this:
 
-     (when (not *compile-files*)
-      (config/register-config "path/to/my.libs.config"))
+    (ns my.ns
+     (:require [com.ubermensch.configurator :as config]))
 
-Where "my.libs.config" can either be provided in the filesystem, relative to
+     (when (not *compile-files*)
+      (config/register-config "path/to/my.ns.config"))
+
+Where "my.ns.config" can either be provided in the filesystem, relative to
 where the app is launched, or in the classpath. The (when (not *compile-files*)
 ... ) is to prevent the registration from running during compile time. It is
 not strictly necessary, but it relieves the library of the requirement that
-they provide "path/to/my.libs.config" during AOT-compilation.
+they provide "path/to/my.ns.config" during AOT-compilation.
 
 Once Configurator is loaded, a thread is kicked off that monitors all
 registered config files. Every five minutes it reloads the files to pick up
