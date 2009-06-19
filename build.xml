@@ -22,7 +22,8 @@
 
   <target name="compile">
     <mkdir dir="${classes.dir}" />
-    <java classname="clojure.lang.Compile" fork="true" resultproperty="compile.result">
+    <java classname="clojure.lang.Compile" fork="true"
+          resultproperty="compile.result">
       <classpath>
         <path refid="project.classpath" />
       </classpath>
