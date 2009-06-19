@@ -21,6 +21,12 @@ For example, the following config file would result in the simple configuration
 The config files are executed in a separated namespace and will not pollute the
 global namespace.
 
+Once Configurator is loaded, a thread is kicked off that monitors all
+registered config files. Every five minutes it reloads the files to pick up
+any changes. If a thread cannot be started for any reason, for example, due to
+a security policy, this feature is simply not available. However, applications
+are free to call `com.ubermensch.configurator/check-for-updates` on their own.
+
 ## Use
 
 The intention is that libraries making use of Configurator can document
@@ -39,11 +45,14 @@ where the app is launched, or in the classpath. The `(when (not *compile-files*)
 not strictly necessary, but it relieves the library of the requirement that
 they provide "path/to/my.ns.config" during AOT-compilation.
 
-Once Configurator is loaded, a thread is kicked off that monitors all
-registered config files. Every five minutes it reloads the files to pick up
-any changes. If a thread cannot be started for any reason, for example, due to
-a security policy, this feature is simply not available. However, applications
-are free to call `com.ubermensch.configurator/check-for-updates` on their own.
+Then, to access configured values, you use the `get` function:
+
+    (config/get ::my-key)
+
+Here the key, `::my-key`, is namespace-qualified and would expand to
+`::my.ns/my-key` when run within the `my.ns` namespace declared above. It
+is a good idea for libraries to use namespace-qualified keys like this to
+avoid pollution.
 
 ## License
 
