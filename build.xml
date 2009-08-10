@@ -17,7 +17,8 @@
   </path>
 
   <target name="clean" description="Remove generated files">
-    <delete dir="${classes.dir}"/>
+    <delete dir="${classes.dir}" />
+    <delete file="${jar.name}" />
   </target>
 
   <target name="def-tasks">
