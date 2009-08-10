@@ -20,52 +20,32 @@
     <delete dir="${classes.dir}"/>
   </target>
 
-  <target name="compile">
+  <target name="def-tasks">
+    <taskdef name="clojure-compile"
+      classname="com.ubermensch.ant.clojure.CompileTask"
+      classpath="lib/ant-deps/clojure-ant-tasks.jar:lib/clojure-deps/clojure.jar:lib/clojure-deps/clojure-contrib.jar" />
+    <taskdef name="clojure-test"
+      classname="com.ubermensch.ant.clojure.TestTask"
+      classpath="lib/ant-deps/clojure-ant-tasks.jar:lib/clojure-deps/clojure.jar:lib/clojure-deps/clojure-contrib.jar" />
+  </target>
+
+  <target name="compile" depends="def-tasks">
     <mkdir dir="${classes.dir}" />
-    <java classname="clojure.lang.Compile" fork="true"
-          resultproperty="compile.result">
+    <clojure-compile>
       <classpath>
         <path refid="project.classpath" />
       </classpath>
-      <sysproperty key="clojure.compile.path" value="${classes.dir}" />
-      <arg value="com.ubermensch.configurator" />
-    </java>
-
-    <condition property="compile.failure">
-      <not>
-        <equals arg1="${compile.result}" arg2="0" />
-      </not>
-    </condition>
-
-    <fail if="compile.failure" message="compile failed" />
+      <namespace>com.ubermensch.configurator</namespace>
+    </clojure-compile>
   </target>
 
   <target name="test" depends="compile">
-    <java classname="clojure.main" fork="true" resultproperty="test.result">
+    <clojure-test>
       <classpath>
-        <path refid="project.classpath" />
         <path refid="test.classpath" />
       </classpath>
-      <arg value="-e" />
-      <arg value="(require 'com.ubermensch.configurator)
-                  (use 'clojure.contrib.test-is)
-                  (def failed (ref 0)) (declare orig-report)
-                  (binding [orig-report report
-                            report #(do (if (#{:fail :error} (:type %))
-                                            (dosync (commute failed inc)))
-                                        (orig-report %))]
-                    (run-all-tests)
-                    (.println System/out)
-                    (System/exit @failed))" />
-    </java>
-
-    <condition property="test.failure">
-      <not>
-        <equals arg1="${test.result}" arg2="0" />
-      </not>
-    </condition>
-
-    <fail if="test.failure" message="test failed" />
+      <namespace>com.ubermensch.configurator</namespace>
+    </clojure-test>
   </target>
 
   <target name="launch_ng">
