@@ -1,18 +1,13 @@
-(ns com.ubermensch.configurator
-  (:use
-     [clojure.contrib.duck-streams :only [with-in-reader slurp*]]
-     [clojure.contrib.test-is :only [testing with-test is]]
-     [clojure.contrib.def :only [defvar-]])
-  (:import
-     [org.joda.time DateTime]
-     [java.util.logging Logger Level])
+(ns com.ubermenschconsulting.configurator
+  (:use [clojure.test :only [testing with-test is]])
+  (:import [org.joda.time DateTime]
+           [java.util.logging Logger Level])
   (:refer-clojure :exclude [get]))
 
-(defvar- *config-version* (ref 0))
-(defvar- *registered-configs* (ref #{}))
-;(defvar- *config* (agent {}))
-(defvar- *config* (ref {}))
-(defvar- *update-interval* (* 5 60 1000)) ; 5 minutes
+(def ^:private *config-version* (ref 0))
+(def ^:private *registered-configs* (ref #{}))
+(def ^:private *config* (ref {}))
+(def ^:private *update-interval* (* 5 60 1000)) ; 5 minutes
 
 (with-test
   (defn- load-config-file
@@ -24,7 +19,7 @@
                                   (dosync (alter *config-version* inc)))))]
       (refer-clojure)
       (let [url (.getResource (clojure.lang.RT/baseLoader) f)]
-        (load-string (slurp* (or url f))))))
+        (load-string (slurp (or url f))))))
 
   (testing "loading a file"
     (is (= '(1 2 3 4 5) (load-config-file "src/test/test.config"))))
