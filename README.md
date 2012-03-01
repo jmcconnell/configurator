@@ -11,12 +11,14 @@ expression of the config file should return a map containing the config data.
 For example, the following config file would result in the simple configuration
 `{ :my-key "My Val" }`:
 
+```clj
     (let [t (System/currentTimeMillis)]
      (if t
       (def v "My Val")
       (def v "Other Val")))
     
     { :my-key v }
+```
 
 The config files are evaluated in a new namespace and `def's` within them will
 not leak out.
@@ -33,11 +35,13 @@ The intention is that libraries making use of Configurator can document
 the config files that they expect to be available at runtime. Then, they
 register those config files with Configurator like this:
 
+```clj
     (ns my.ns
      (:require [com.ubermensch.configurator :as config]))
 
      (when (not *compile-files*)
       (config/register-config "path/to/my.ns.config"))
+```
 
 Where "my.ns.config" can either be provided in the filesystem, relative to
 where the app is launched, or in the classpath. The `(when (not *compile-files*)
@@ -47,7 +51,9 @@ they provide "path/to/my.ns.config" during AOT-compilation.
 
 Then, to access configured values, you use the `get` function:
 
+```clj
     (config/get ::my-key)
+```
 
 Here the key, `::my-key`, is namespace-qualified and would expand to
 `::my.ns/my-key` when run within the `my.ns` namespace declared above. It
