@@ -22,7 +22,7 @@
         (load-string (slurp (or url f))))))
 
   (testing "loading a file"
-    (is (= '(1 2 3 4 5) (load-config-file "src/test/test.config"))))
+    (is (= '(1 2 3 4 5) (load-config-file "test/test.config"))))
 
   (testing "loading a resource"
     (is (= '(1 2 3 4 5) (load-config-file "test.config"))))
