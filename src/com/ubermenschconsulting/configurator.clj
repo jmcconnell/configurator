@@ -3,10 +3,11 @@
            [java.util.logging Logger Level])
   (:refer-clojure :exclude [get]))
 
-(def ^:private *config-version* (ref 0))
-(def ^:private *registered-configs* (ref #{}))
-(def ^:private *config* (ref {}))
-(def ^:private *update-interval* (* 5 60 1000)) ; 5 minutes
+(def ^:dynamic *update-interval* (* 5 60 1000)) ; 5 minutes
+
+(def ^:private config-version (ref 0))
+(def ^:private registered-configs (ref #{}))
+(def ^:private ^:dynamic *config* (ref {}))
 
 (defn- ^:dynamic load-config-file
   "Loads f and returns the final expression. If f is found on the classpath,
@@ -14,7 +15,7 @@
   [f]
   (binding [*ns* (create-ns
                    (symbol (str "com.ubermensch.configurator.config"
-                                (dosync (alter *config-version* inc)))))]
+                                (dosync (alter config-version inc)))))]
     (refer-clojure)
     (let [url (.getResource (clojure.lang.RT/baseLoader) f)]
       (load-string (slurp (or url f))))))
@@ -28,7 +29,7 @@
     ;(await *config*)
     (dosync
       (update-config config)
-      (alter *registered-configs*
+      (alter registered-configs
              conj
              (with-meta [f] {:last-updated (DateTime.)})))))
 
@@ -37,7 +38,7 @@
   *update-interval* seconds and reloads them."
   []
   (doseq [c (filter #(.isAfter (DateTime.) (.plus % *update-interval*))
-                    @*registered-configs*)]
+                    @registered-configs)]
     (update-config c)))
 
 (defn get
