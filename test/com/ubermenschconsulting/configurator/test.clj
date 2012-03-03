@@ -11,7 +11,8 @@
 
 (deftest load-config-file-test
   (testing "loading a file"
-    (is (= '(1 2 3 4 5) (#'config/load-config-file "test/test.config"))))
+    (is (= '(1 2 3 4 5)
+           (#'config/load-config-file "test/resources/test.config"))))
 
   (testing "loading a resource"
     (is (= '(1 2 3 4 5) (#'config/load-config-file "test.config"))))
